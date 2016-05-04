@@ -1,10 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "layout.html" %}
+{% block body %}
+    {%if session.logged_in %}
+        <form action="{{ url_for('add_entry') }}" method="post" class="add-entry">
+            <dl>
+                <dt>Title:</dt>
+                <dd><input type="text" size="30" name="title"></dd>
+                <dt>Text:</dt>
+                <dd><textarea name="text" cols="40" rows="5"></textarea></dd>
+                <dd><input type="submit" value="Share"></dd>
+            </dl>
+        </form>
+    {% endif %}
+    <ur class="entries">
+        {% for entry in entries %}
+            <li>
+                <h2>{{ entry.title }}</h2>
+                {# |safe 标记安全代码 #}
+                {{ entry.text|safe }}
+            </li>
+        {% else %}
+            <li><em>Unbelievable. No entries here so far</em></li>
+        {% endfor %}
+    </ur>
+{% endblock %}
