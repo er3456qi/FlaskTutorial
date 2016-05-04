@@ -2,6 +2,7 @@
 import sqlite3
 from flask import Flask, request, session, g, redirect, \
     url_for, abort, render_template, flash
+from contextlib import closing
 
 # configuration
 DATABASE = '/tmp/flaskr.db'
@@ -35,6 +36,20 @@ def connect_db():
     这个方法可以用于在请求时打开连接，也可以用于 Python 交互终端或代码中。以后会派上用场。
     """
     return sqlite3.connect(app.config['DATABASE'])
+
+
+def init_db():
+    """
+    init_db()的作用是简化创建及初始化数据库的过程。
+    closing() 函数允许我们在with代码块内保持数据库连接为打开状态。
+    应用对象的 open_resource() 也支持这个功能，可以在with代码块中直接使用。
+    open_resource 打开一个位于来源位置（你的flaskr文件夹）的文件并允许你读取文件的内容。
+    这里我们把内容读取后直接执行了。
+    """
+    with closing(connect_db()) as db:
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read)
+        db.commit()
 
 
 if __name__ == '__main__':
