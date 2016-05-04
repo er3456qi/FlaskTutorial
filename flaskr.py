@@ -4,12 +4,12 @@ from flask import Flask, request, session, g, redirect, \
     url_for, abort, render_template, flash
 from contextlib import closing
 
-# configuration
-DATABASE = '/tmp/flaskr.db'
-DEBUG = True
-SECRET_KEY = 'development key'
-USERNAME = 'admin'
-PASSWORD = 'default'
+# configuration 这里移到外部文件config.py里面去了
+# DATABASE = '/tmp/flaskr.db'
+# DEBUG = True
+# SECRET_KEY = 'development key'
+# USERNAME = 'admin'
+# PASSWORD = 'default'
 
 # create our little application
 app = Flask(__name__)
@@ -17,15 +17,16 @@ app = Flask(__name__)
 """
 from_object() 会查看给定的对象（如果该对象是一个字符串就会直接导入它），
 搜索对象中所有变量名均为大字字母的变量。在我们的应用中，已经将配置写在前面了。
-你可以把这些配置放到一个独立的文件中。
+你可以把这些配置放到一个独立的文件中（这里就放到config.py里面去了）。
 """
 # app.config.from_object(__name__)
+
 
 """
 通常，从一个配置文件中导入配置是比较好的做法，
 我们使用 from_envvar() 来完成这个工作，把上面的 from_object() 一行替换为下面这行。
 这样做就可以设置一个 FLASKR_SETTINGS 的环境变量来指定一个配置文件，并根据该文件来重载缺省的配置。
-silent 开关的作用是告诉 Flask 如果没有这个环境变量 不要报错。
+silent 开关的作用是告诉 Flask 如果没有这个环境变量不要报错。
 """
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
@@ -75,7 +76,6 @@ def teardown_request(exception):
     db = getattr(g, 'db', None)
     if db is not None:
         db.close()
-    g.db.close()
 
 
 @app.route('/')
