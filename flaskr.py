@@ -52,5 +52,31 @@ def init_db():
         db.commit()
 
 
+@app.before_request
+def before_request():
+    """
+    使用 before_request 装饰器的函数会在请求之前调用，且不传递参数。
+    我们把数据库连接保存在 Flask 提供的特殊的 g 对象中。
+    这个对象与 每一个请求是一一对应的，并且只在函数内部有效。
+    不要在其它对象中储存类似信息， 因为在多线程环境下无效。
+    这个特殊的 g 对象会在后台神奇的工作，保证系统正常运行。
+    """
+    g.db = connect_db()
+
+
+@app.teardown_request
+def teardown_request(exception):
+    """
+    使用 after_request 装饰器的函数会在请求之后调用，且传递发给客户端的响应对象。
+    它们必须传递响应对象，所以在出错的情况下就不会执行。因此我们就要用到teardown_request装饰器。
+    这个装饰器下的函数在响应对象构建后被调用。它们不允许修改请求，并且他们的返回值被忽略。
+    如果请求过程中出错，那么这个错误会传递给每个函数，否则传递None。
+    """
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+    g.db.close()
+
+
 if __name__ == '__main__':
     app.run()
