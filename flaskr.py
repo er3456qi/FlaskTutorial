@@ -78,5 +78,63 @@ def teardown_request(exception):
     g.db.close()
 
 
+@app.route('/')
+def show_entries():
+    # 这个视图显示所有数据库中的条目。
+    # 从指针返回的记录集是一个包含 select 语句查询结果的元组。这里最后给转换成一个字典
+    cur = g.db.execute('select title, text from entries order by id desc')
+    entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+    return render_template('show_entries.html', entries=entries)
+
+
+@app.route('/add', methods=['POST'])
+def add_entry():
+    # 在本视图中检查了用户是否已经登录
+    # (即检查会话中是否有 logged_in 键，且对应的值是否为 True ）。
+    if not session.get('logged_in'):
+        abort(401)
+    # 确保在构建 SQL 语句时使用问号而不是使用字符串连接,这样能避免遭受SQL注入攻击。
+    g.db.execute('insert into entries (title, text) values (?, ?)',
+                 [request.form['title'], request.form['text']])
+    g.db.commit()
+    flash("New entry was successfully posted")
+    return redirect(url_for('show_entries'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    登录视图根据配置中的用户名和密码验证用户并在会话中设置 logged_in 键值。
+    如果用户通过验证，键值设为 True ，那么用户会被重定向到 show_entries 页面。
+    另外闪现一个信息，告诉用户已登录成功。
+    如果出现错误，模板会提示错误信息，并让用户重新登录:
+    """
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != app.config['USERNAME']:
+            error = 'Invalid username'
+        elif request.form['password'] != app.config['PASSWORD']:
+            error = "Invalid password"
+        else:
+            session['logged_in'] = True
+            flash('You were logged in')
+            return redirect(url_for('show_entries'))
+    return render_template('login.html', error=error)
+
+
+@app.route('/logout')
+def logout():
+    """
+    登出视图则正好相反，把键值从会话中删除。
+    在这里我们使用了一个小技巧：如果你使用字典的 pop() 方法并且传递了第二个参数（键的缺省值），
+    那么当字典中有这个键时就会删除这个键，否则什么也不做。
+    这样做的好处是我们不用检查用户是否已经登录了。
+    :return:
+    """
+    session.pop('logged_in', None)
+    flash('You were logged out')
+    return redirect(url_for('show_entries'))
+
+
 if __name__ == '__main__':
     app.run()
