@@ -1,1 +1,1 @@
-[Flask tutorial]("http://flask.pocoo.org/docs/0.10/tutorial/") code
+[Flask tutorial](http://flask.pocoo.org/docs/0.10/tutorial/) code
